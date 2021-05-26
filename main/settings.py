@@ -93,10 +93,10 @@ WSGI_APPLICATION = "main.wsgi.application"
 
 # Docker changes
 if DOCKER:
-    POSTGRES_HOST = "db"
-    REDIS_HOST = "redis"
-    MOPIDY_HOST = "mopidy"
-    ICECAST_HOST = "icecast"
+    POSTGRES_HOST = os.environ.get("POSTGRES_HOST", "db")
+    REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
+    MOPIDY_HOST = os.environ.get("MOPIDY_HOST", "mopidy")
+    ICECAST_HOST = os.environ.get("ICECAST_HOST", "icecast")
     DEFAULT_CACHE_DIR = "/Music/raveberry/"
     TEST_CACHE_DIR = DEFAULT_CACHE_DIR
 else:
@@ -121,11 +121,11 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": "raveberry",
-            "USER": "raveberry",
-            "PASSWORD": "raveberry",
+            "NAME": os.environ.get("POSTGRES_DB", "raveberry"),
+            "USER": os.environ.get("POSTGRES_USER", "raveberry"),
+            "PASSWORD": os.environ.get("POSTGRES_PASS","raveberry"),
             "HOST": POSTGRES_HOST,
-            "PORT": "5432",
+            "PORT": os.environ.get("POSTGRES_PORT", "5432"),
         }
     }
 
@@ -185,10 +185,11 @@ ASGI_APPLICATION = "main.routing.APPLICATION"
 if DEBUG:
     CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 else:
+    hosts = [REDIS_HOST] if "redis://" in REDIS_HOST else [(REDIS_HOST, 6379)]
     CHANNEL_LAYERS = {
         "default": {
             "BACKEND": "channels_redis.core.RedisChannelLayer",
-            "CONFIG": {"hosts": [(REDIS_HOST, 6379)], "capacity": 1500, "expiry": 10},
+            "CONFIG": {"hosts": hosts, "capacity": 1500, "expiry": 10},
         }
     }
 
